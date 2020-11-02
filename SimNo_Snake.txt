@@ -1,0 +1,136 @@
+﻿from sense_hat import SenseHat
+from time import sleep
+from random import randrange
+sense = SenseHat()
+
+blue = (0,0,255)
+red = (255,0,0)
+white = (255,255,255)
+sense.clear(0,0,0)
+snake_velocity = [0,-1]
+snake_position = [[4,3],[4,4],[4,5],[4,6],[4,7]]
+prev_snake_position = [[4,3],[4,4],[4,5],[4,6],[4,7]]
+apple_made = False
+apple_list = [0,0]
+apple_eat = False
+def lose_message():
+    sense.show_message("you lose!")
+
+def draw_snake():
+    global snake_position
+    global prev_snake_position
+    global apple_eat
+    global apple_made
+    try:
+        for id in range(len(snake_position)):
+            prev_snake_position[id][0] = snake_position[id][0]
+            prev_snake_position[id][1] = snake_position[id][1]
+    
+        snake_position[0][0] += snake_velocity[0]
+        snake_position[0][1] += snake_velocity[1]
+         
+        for id in range(len(snake_position)-1):
+            snake_position[id+1][0] = prev_snake_position[id][0]
+            snake_position[id+1][1] = prev_snake_position[id][1]
+        
+        for id in range(len(snake_position)):
+            sense.set_pixel(snake_position[id][0],snake_position[id][1], blue)
+        eat_apple()
+        print('Status er: ',apple_eat)
+        if apple_eat == True:
+            counter = 0
+            a = len(snake_position)
+            print('len er: ',a)
+            for tab in range(a):
+                print('a')
+                if snake_position[tab][0] == apple_list[0][0] and snake_position[tab][1] == apple_list[1][0]:
+                    counter += 1
+            print('Counter er: ',counter)
+            if counter == 0:
+                snake_position += ([[apple_list[0][0],apple_list[1][0]]])
+                prev_snake_position += ([[apple_list[0][0],apple_list[1][0]]])
+                apple_made = False
+                apple_eat = False
+                apple_list.clear()
+            
+        hit_self()
+    
+        print(prev_snake_position)
+        print(snake_position)
+        print()
+    except:
+        lose_message()
+        
+def move_up(event):
+    global snake_velocity
+    if event.action == 'pressed':
+        snake_velocity[0] = 0
+        snake_velocity[1] = -1
+        
+def move_down(event):
+    global snake_velocity
+    if event.action == 'pressed':
+        snake_velocity[0] = 0
+        snake_velocity[1] = 1
+        
+def move_left(event):
+    global snake_velocity
+    if event.action == 'pressed':
+        snake_velocity[0] = -1
+        snake_velocity[1] = 0
+        
+def move_right(event):
+    global snake_velocity
+    if event.action == 'pressed':
+        snake_velocity[0] = 1
+        snake_velocity[1] = 0
+
+def hit_self():
+    pos3 = [0,0]
+    for pos1 in snake_position:
+        pos3.clear()
+        for pos2 in snake_position:
+            if pos1 == pos2:
+                pos3.append(pos2)
+                if len(pos3) > 1:
+                    lose_message()
+                    
+def make_apple():
+    global snake_position
+    global apple_list
+    global apple_made
+    run_loop = True
+    create_apple = 3
+    apple_x = 0
+    apple_y = 0
+    if apple_made == False:
+        while run_loop:
+            counter = 0
+            apple_x = randrange(0, 7)
+            apple_y = randrange(0, 7)
+            for pos in range(len(snake_position)):
+                if snake_position[pos][0] != apple_x and snake_position[pos][1] != apple_y:
+                    """apple_list.clear()"""
+                    apple_list = ([[apple_x],[apple_y]])
+                    run_loop = False
+                    apple_made = True
+def eat_apple():
+    global snake_position
+    global apple_list
+    global apple_eat
+    if snake_position[0][0] == apple_list[0][0] and snake_position[0][1] == apple_list[1][0]:
+        print(eat_apple)
+        apple_eat = True
+
+while True:
+    sense.stick.direction_up = move_up
+    sense.stick.direction_down = move_down
+    sense.stick.direction_left = move_left
+    sense.stick.direction_right = move_right
+    sense.clear()
+    if apple_made == False:
+        make_apple()
+    if apple_made == True:
+        sense.set_pixel(apple_list[0][0],apple_list[1][0],red)
+    draw_snake()
+    sleep(1)
